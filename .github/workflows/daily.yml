@@ -2,28 +2,39 @@ name: StockEdge Daily Scanner
 
 on:
   schedule:
+    # Run every weekday at 7:30 PM New York time
     - cron: "30 22 * * 1-5"
+
+  # allows manual run from GitHub
   workflow_dispatch:
+
+  # allows Telegram to trigger scan
+  repository_dispatch:
+    types:
+      - telegram_scan
 
 jobs:
   run-scanner:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install packages
+      - name: Install Dependencies
         run: |
-          pip install yfinance pandas numpy requests
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy requests ta
 
-      - name: Run scanner
+      - name: Run Scanner
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python scanner.py
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          python scanner.py
